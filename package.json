@@ -1,0 +1,32 @@
+{
+  "name": "student-attendance-system",
+  "version": "1.0.0",
+  "description": "A web-based Student Attendance Management System built with HTML, CSS, JavaScript, Node.js and SQL Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LamekTH/Student-Attendance-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LamekTH/Student-Attendance-System/issues"
+  },
+  "homepage": "https://github.com/LamekTH/Student-Attendance-System#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "mssql": "^12.7.14"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
