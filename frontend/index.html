@@ -256,6 +256,118 @@
 
 </section>
 
+<!-- STUDENT MANAGEMENT SECTION -->
+<section class="panel recent-panel" id="students">
+
+    <div class="panel-heading">
+        <div>
+            <h3>Student Management</h3>
+            <p>Add, view and manage registered students</p>
+        </div>
+
+        <button type="button" id="showAddStudent" class="save-btn">
+            + Add Student
+        </button>
+    </div>
+
+    <!-- ADD / EDIT STUDENT FORM -->
+    <div id="studentFormContainer" hidden>
+
+        <h3 id="studentFormTitle">Register New Student</h3>
+
+        <form id="studentForm">
+
+            <input type="hidden" id="editStudentID">
+
+            <div class="student-form-grid">
+
+                <div>
+                    <label for="studentNumber">Student Number</label>
+                    <input type="text" id="studentNumber"
+                        placeholder="e.g. STU010" required>
+                </div>
+
+                <div>
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName"
+                        placeholder="Enter first name" required>
+                </div>
+
+                <div>
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName"
+                        placeholder="Enter last name" required>
+                </div>
+
+                <div>
+                    <label for="gender">Gender</label>
+                    <select id="gender">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="classID">Class</label>
+                    <select id="classID">
+                        <option value="">Select class</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="student-form-actions">
+
+                <button type="submit" id="submitStudent" class="save-btn">
+                    Save Student
+                </button>
+
+                <button type="button" id="cancelStudentForm" class="cancel-btn">
+                    Cancel
+                </button>
+
+            </div>
+
+            <p id="studentFormMessage"></p>
+
+        </form>
+    </div>
+
+    <!-- SEARCH STUDENTS -->
+    <div class="search-box">
+        <span>⌕</span>
+        <input type="text" id="searchInput"
+            placeholder="Search students...">
+    </div>
+
+    <!-- STUDENT TABLE -->
+    <div class="table-container">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>STUDENT</th>
+                    <th>STUDENT ID</th>
+                    <th>CLASS</th>
+                    <th>GENDER</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+
+            <tbody id="attendanceTable">
+                <tr>
+                    <td colspan="5">Loading students...</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <p id="noResults" hidden>No students found.</p>
+
+</section>
+
         <footer>
             <p>© 2026 AttendwithEase. Student Attendance Management System.</p>
             <span>Version 1.0.0</span>
