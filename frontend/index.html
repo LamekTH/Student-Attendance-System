@@ -204,39 +204,58 @@
         </section>
 
         <!-- Recent Attendance -->
-        <section class="panel recent-panel">
-            <div class="panel-heading recent-heading">
-                <div>
-                    <h3>Registered Students</h3>
-<p>Student records retrieved from the database</p>
-                </div>
-                <a href="#attendance" class="view-all">View all →</a>
-            </div>
+        
+<!-- Attendance Recording Section -->
+<section class="panel recent-panel" id="attendance">
 
-            <div class="search-box">
-                <span>⌕</span>
-                <input type="text" id="searchInput"
-                    placeholder="Search student name or ID...">
-            </div>
+    <div class="panel-heading">
+        <div>
+            <h3>Record Attendance</h3>
+            <p>Mark students present, absent or late</p>
+        </div>
+        <span class="live-label" id="attendanceDate"></span>
+    </div>
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                           <th>STUDENT</th>
-                           <th>STUDENT ID</th>
-                           <th>CLASS</th>
-                           <th>GENDER</th> 
-                        </tr>
-                    </thead>
-                      <tbody id="attendanceTable">
-            <!-- Student records will load from SQL Server -->
-        </tbody>
-          </table>
-           <p id="noResults" class="no-results" hidden>
-        No matching students found.
-    </p>
-</div>
+    <div class="search-box">
+        <span>⌕</span>
+        <input
+            type="text"
+            id="attendanceSearch"
+            placeholder="Search student name or ID..."
+        >
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>STUDENT</th>
+                    <th>STUDENT ID</th>
+                    <th>CLASS</th>
+                    <th>ATTENDANCE STATUS</th>
+                </tr>
+            </thead>
+
+            <tbody id="attendanceRecords">
+                <tr>
+                    <td colspan="4">Loading students...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-heading">
+        <p>Select an attendance status for each student.</p>
+
+        <button type="button" id="saveAttendance" class="save-btn">
+            Save Attendance
+        </button>
+    </div>
+
+    <p id="attendanceMessage"></p>
+
+</section>
+
         <footer>
             <p>© 2026 AttendwithEase. Student Attendance Management System.</p>
             <span>Version 1.0.0</span>
