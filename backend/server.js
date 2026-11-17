@@ -14,12 +14,14 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const path = require("path");
+
+// Serve frontend files
+app.use(express.static(path.join(__dirname, "../frontend")));
+
 // Home route
 app.get("/", (req, res) => {
-    res.json({
-        message: "Student Attendance Management System API",
-        status: "Running"
-    });
+    res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
 // Health check

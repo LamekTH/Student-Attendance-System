@@ -1,77 +1,67 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // ==========================================
-    // 1. GET HTML ELEMENTS
-    // ==========================================
+    const API_URL = "http://localhost:5000/api";
 
+    // DOM ELEMENTS
     const currentDate = document.getElementById("currentDate");
     const attendanceDate = document.getElementById("attendanceDate");
 
-    const searchInput = document.getElementById("searchInput");
-    const attendanceSearch = document.getElementById("attendanceSearch");
-
-    const registeredTable = document.getElementById("attendanceTable");
     const attendanceRecords = document.getElementById("attendanceRecords");
+    const attendanceTable = document.getElementById("attendanceTable");
+
+    const attendanceSearch = document.getElementById("attendanceSearch");
+    const searchInput = document.getElementById("searchInput");
+
+    const saveAttendance = document.getElementById("saveAttendance");
+    const attendanceMessage = document.getElementById("attendanceMessage");
+
+    const studentForm = document.getElementById("studentForm");
+    const studentFormContainer = document.getElementById("studentFormContainer");
+    const studentFormTitle = document.getElementById("studentFormTitle");
+    const studentFormMessage = document.getElementById("studentFormMessage");
+
+    const showAddStudent = document.getElementById("showAddStudent");
+    const cancelStudentForm = document.getElementById("cancelStudentForm");
+
+    const editStudentID = document.getElementById("editStudentID");
+    const studentNumber = document.getElementById("studentNumber");
+    const firstName = document.getElementById("firstName");
+    const lastName = document.getElementById("lastName");
+    const gender = document.getElementById("gender");
+    const classID = document.getElementById("classID");
+    const submitStudent = document.getElementById("submitStudent");
 
     const noResults = document.getElementById("noResults");
 
-    const totalStudents = document.getElementById("totalStudents");
+    // APPLICATION DATA
+    let students = [];
+    let classes = [];
+    let attendanceStatus = {};
 
-    const presentToday = document.getElementById("presentToday");
-    const absentToday = document.getElementById("absentToday");
-    const lateToday = document.getElementById("lateToday");
-
-    const presentPercentage = document.getElementById("presentPercentage");
-    const absentPercentage = document.getElementById("absentPercentage");
-    const latePercentage = document.getElementById("latePercentage");
-
-    const attendanceDonut = document.getElementById("attendanceDonut");
-    const attendanceRate = document.getElementById("attendanceRate");
-
-    const presentCount = document.getElementById("presentCount");
-    const absentCount = document.getElementById("absentCount");
-    const lateCount = document.getElementById("lateCount");
-
-    const saveAttendanceButton = document.getElementById("saveAttendance");
-    const attendanceMessage = document.getElementById("attendanceMessage");
-
-    // ==========================================
-    // 2. DATE FUNCTIONS
-    // ==========================================
-
+    // DISPLAY TODAY'S DATE
     const today = new Date();
 
-    const todayString = [
+    const formattedDate = today.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    });
+
+    if (currentDate) currentDate.textContent = formattedDate;
+
+    const todayISO = [
         today.getFullYear(),
         String(today.getMonth() + 1).padStart(2, "0"),
         String(today.getDate()).padStart(2, "0")
     ].join("-");
 
-    if (currentDate) {
-        currentDate.textContent = today.toLocaleDateString("en-GB", {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            year: "numeric"
-        });
-    }
-
     if (attendanceDate) {
-        attendanceDate.textContent = today.toLocaleDateString("en-GB");
+        attendanceDate.textContent = formattedDate;
     }
 
-    // ==========================================
-    // 3. STORE DATA
-    // ==========================================
-
-    let students = [];
-    let attendanceStatus = {};
-
-    // ==========================================
-    // 4. ESCAPE DATABASE VALUES
-    // ==========================================
-
+    // ESCAPE HTML
     function escapeHTML(value) {
         return String(value ?? "").replace(/[&<>"']/g, character => ({
             "&": "&amp;",
@@ -82,438 +72,459 @@ document.addEventListener("DOMContentLoaded", () => {
         })[character]);
     }
 
-    // ==========================================
-    // 5. DISPLAY REGISTERED STUDENTS
-    // ==========================================
-
-    function displayStudents(studentList) {
-
-        if (!registeredTable) return;
-
-        registeredTable.innerHTML = "";
-
-        studentList.forEach(student => {
-
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-                <td>${escapeHTML(student.FirstName)} ${escapeHTML(student.LastName)}</td>
-                <td>${escapeHTML(student.StudentNumber)}</td>
-                <td>${escapeHTML(student.ClassName || "Not assigned")}</td>
-                <td>${escapeHTML(student.Gender || "Not specified")}</td>
-            `;
-
-            registeredTable.appendChild(row);
-        });
-
-        if (noResults) {
-            noResults.hidden = studentList.length !== 0;
-        }
-    }
-
-    // ==========================================
-    // 6. DISPLAY STUDENTS IN ATTENDANCE TABLE
-    // ==========================================
-
-    function displayAttendanceStudents(studentList) {
-
-        if (!attendanceRecords) return;
-
-        attendanceRecords.innerHTML = "";
-
-        if (studentList.length === 0) {
-            attendanceRecords.innerHTML = `
-                <tr>
-                    <td colspan="4">No students found.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        studentList.forEach(student => {
-
-            const row = document.createElement("tr");
-
-            const savedStatus = attendanceStatus[student.StudentID] || "";
-
-            row.innerHTML = `
-                <td>${escapeHTML(student.FirstName)} ${escapeHTML(student.LastName)}</td>
-
-                <td>${escapeHTML(student.StudentNumber)}</td>
-
-                <td>${escapeHTML(student.ClassName || "Not assigned")}</td>
-
-                <td>
-                    <select
-                        class="attendance-status"
-                        data-student-id="${escapeHTML(student.StudentID)}"
-                    >
-                        <option value="" ${savedStatus === "" ? "selected" : ""}>
-                            Select status
-                        </option>
-
-                        <option value="Present" ${savedStatus === "Present" ? "selected" : ""}>
-                            Present
-                        </option>
-
-                        <option value="Absent" ${savedStatus === "Absent" ? "selected" : ""}>
-                            Absent
-                        </option>
-
-                        <option value="Late" ${savedStatus === "Late" ? "selected" : ""}>
-                            Late
-                        </option>
-                    </select>
-                </td>
-            `;
-
-            attendanceRecords.appendChild(row);
-        });
-    }
-
-    // ==========================================
-    // 7. LOAD EXISTING ATTENDANCE FOR TODAY
-    // ==========================================
-
-    async function loadTodayAttendance() {
-
-        try {
-
-            const response = await fetch(
-                "http://localhost:5000/api/attendance/today"
-            );
-
-            if (!response.ok) {
-                throw new Error("Could not load today's attendance.");
-            }
-
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.message || "Attendance loading failed.");
-            }
-
-            attendanceStatus = {};
-
-            data.attendance.forEach(record => {
-                attendanceStatus[record.StudentID] = record.Status;
-            });
-
-            console.log("Today's attendance loaded:", attendanceStatus);
-
-        } catch (error) {
-
-            console.error("Today's attendance error:", error);
-
-            attendanceStatus = {};
-        }
-    }
-
-    // ==========================================
-    // 8. LOAD STUDENTS FROM DATABASE
-    // ==========================================
-
+    // LOAD ALL STUDENTS
     async function loadStudents() {
-
         try {
-
-            if (registeredTable) {
-                registeredTable.innerHTML = `
-                    <tr>
-                        <td colspan="4">Loading students...</td>
-                    </tr>
-                `;
-            }
-
-            if (attendanceRecords) {
-                attendanceRecords.innerHTML = `
-                    <tr>
-                        <td colspan="4">Loading students...</td>
-                    </tr>
-                `;
-            }
-
-            const response = await fetch(
-                "http://localhost:5000/api/students"
-            );
-
-            if (!response.ok) {
-                throw new Error("Failed to retrieve students.");
-            }
-
+            const response = await fetch(`${API_URL}/students`);
             const data = await response.json();
 
-            if (!data.success) {
-                throw new Error(data.message || "Unable to load students.");
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not load students.");
             }
 
             students = data.students || [];
+
+            displayStudents();
+            displayAttendanceStudents();
+
+            const totalStudents = document.getElementById("totalStudents");
 
             if (totalStudents) {
                 totalStudents.textContent = students.length;
             }
 
-            await loadTodayAttendance();
-
-            displayStudents(students);
-            displayAttendanceStudents(students);
-
-            console.log("Students loaded successfully:", students);
-
         } catch (error) {
+            console.error("Load students error:", error);
 
-            console.error("Student loading error:", error);
-
-            const errorMessage = `
-                <tr>
-                    <td colspan="4">
-                        Unable to load students. Check the backend and API.
-                    </td>
-                </tr>
-            `;
-
-            if (registeredTable) {
-                registeredTable.innerHTML = errorMessage;
+            if (attendanceTable) {
+                attendanceTable.innerHTML = `
+                    <tr><td colspan="5">Unable to load students.</td></tr>
+                `;
             }
 
             if (attendanceRecords) {
-                attendanceRecords.innerHTML = errorMessage;
+                attendanceRecords.innerHTML = `
+                    <tr><td colspan="4">Unable to load students.</td></tr>
+                `;
             }
         }
     }
 
-    // ==========================================
-    // 9. LOAD DASHBOARD ATTENDANCE SUMMARY
-    // ==========================================
+    // DISPLAY REGISTERED STUDENTS
+    function displayStudents(list = students) {
+        if (!attendanceTable) return;
 
-    async function loadAttendanceSummary() {
+        if (list.length === 0) {
+            attendanceTable.innerHTML = `
+                <tr><td colspan="5">No students registered.</td></tr>
+            `;
 
+            if (noResults) noResults.hidden = students.length === 0;
+            return;
+        }
+
+        if (noResults) noResults.hidden = true;
+
+        attendanceTable.innerHTML = list.map(student => `
+            <tr>
+                <td>
+                    <strong>${escapeHTML(student.FirstName)} ${escapeHTML(student.LastName)}</strong>
+                </td>
+                <td>${escapeHTML(student.StudentNumber)}</td>
+                <td>${escapeHTML(student.ClassName || "Not assigned")}</td>
+                <td>${escapeHTML(student.Gender || "Not specified")}</td>
+                <td>
+                    <button
+                        type="button"
+                        class="edit-student-btn"
+                        data-id="${student.StudentID}">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    // LOAD CLASSES
+    async function loadClasses() {
         try {
-
-            const response = await fetch(
-                "http://localhost:5000/api/attendance/summary"
-            );
-
-            if (!response.ok) {
-                throw new Error("Failed to retrieve attendance summary.");
-            }
-
+            const response = await fetch(`${API_URL}/students/classes`);
             const data = await response.json();
 
-            if (!data.success) {
-                throw new Error(data.message || "Unable to load attendance.");
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not load classes.");
             }
 
-            const summary = data.summary;
+            classes = data.classes || [];
 
-            const present = Number(summary.Present) || 0;
-            const absent = Number(summary.Absent) || 0;
-            const late = Number(summary.Late) || 0;
-            const total = Number(summary.TotalRecords) || 0;
-
-            const presentRate = total > 0 ? (present / total) * 100 : 0;
-            const absentRate = total > 0 ? (absent / total) * 100 : 0;
-            const lateRate = total > 0 ? (late / total) * 100 : 0;
-
-            if (presentToday) presentToday.textContent = present;
-            if (absentToday) absentToday.textContent = absent;
-            if (lateToday) lateToday.textContent = late;
-
-            if (presentPercentage) {
-                presentPercentage.textContent = `${presentRate.toFixed(1)}% attendance`;
+            if (classID) {
+                classID.innerHTML = `
+                    <option value="">Select class</option>
+                    ${classes.map(item => `
+                        <option value="${item.ClassID}">
+                            ${escapeHTML(item.ClassName)} - ${escapeHTML(item.GradeLevel)}
+                        </option>
+                    `).join("")}
+                `;
             }
 
-            if (absentPercentage) {
-                absentPercentage.textContent = `${absentRate.toFixed(1)}% of records`;
+        } catch (error) {
+            console.error("Load classes error:", error);
+
+            if (studentFormMessage) {
+                studentFormMessage.textContent =
+                    "Could not load classes. Please check the server.";
+            }
+        }
+    }
+
+    // LOAD TODAY'S ATTENDANCE
+    async function loadTodayAttendance() {
+        try {
+            const response = await fetch(`${API_URL}/attendance/today`);
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not load attendance.");
             }
 
-            if (latePercentage) {
-                latePercentage.textContent = `${lateRate.toFixed(1)}% of records`;
+            attendanceStatus = {};
+
+            (data.attendance || []).forEach(record => {
+                attendanceStatus[record.StudentID] = record.Status;
+            });
+
+            displayAttendanceStudents();
+
+        } catch (error) {
+            console.error("Load attendance error:", error);
+        }
+    }
+
+    // DISPLAY ATTENDANCE TABLE
+    function displayAttendanceStudents(list = students) {
+        if (!attendanceRecords) return;
+
+        if (list.length === 0) {
+            attendanceRecords.innerHTML = `
+                <tr><td colspan="4">No students found.</td></tr>
+            `;
+            return;
+        }
+
+        attendanceRecords.innerHTML = list.map(student => `
+            <tr>
+                <td>
+                    ${escapeHTML(student.FirstName)} ${escapeHTML(student.LastName)}
+                </td>
+                <td>${escapeHTML(student.StudentNumber)}</td>
+                <td>${escapeHTML(student.ClassName || "Not assigned")}</td>
+                <td>
+                    <select
+                        class="attendance-status"
+                        data-id="${student.StudentID}">
+                        <option value="">Select status</option>
+                        <option value="Present" ${attendanceStatus[student.StudentID] === "Present" ? "selected" : ""}>Present</option>
+                        <option value="Absent" ${attendanceStatus[student.StudentID] === "Absent" ? "selected" : ""}>Absent</option>
+                        <option value="Late" ${attendanceStatus[student.StudentID] === "Late" ? "selected" : ""}>Late</option>
+                    </select>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    // TRACK ATTENDANCE SELECTIONS
+    if (attendanceRecords) {
+        attendanceRecords.addEventListener("change", event => {
+            if (event.target.classList.contains("attendance-status")) {
+                const id = event.target.dataset.id;
+                attendanceStatus[id] = event.target.value;
+            }
+        });
+    }
+
+    // ATTENDANCE SEARCH
+    if (attendanceSearch) {
+        attendanceSearch.addEventListener("input", () => {
+            const search = attendanceSearch.value.toLowerCase();
+
+            const filtered = students.filter(student =>
+                `${student.FirstName} ${student.LastName} ${student.StudentNumber} ${student.ClassName || ""}`
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+            displayAttendanceStudents(filtered);
+        });
+    }
+
+    // STUDENT SEARCH
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            const search = searchInput.value.toLowerCase();
+
+            const filtered = students.filter(student =>
+                `${student.FirstName} ${student.LastName} ${student.StudentNumber} ${student.ClassName || ""}`
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+            displayStudents(filtered);
+        });
+    }
+
+    // LOAD ATTENDANCE SUMMARY
+    async function loadAttendanceSummary() {
+        try {
+            const response = await fetch(`${API_URL}/attendance/summary`);
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not load summary.");
             }
 
-            if (attendanceRate) {
-                attendanceRate.textContent = `${presentRate.toFixed(1)}%`;
-            }
+            const summary = data.summary || data;
 
-            if (presentCount) presentCount.textContent = present;
-            if (absentCount) absentCount.textContent = absent;
-            if (lateCount) lateCount.textContent = late;
+            const present = Number(summary.Present || summary.present || 0);
+            const absent = Number(summary.Absent || summary.absent || 0);
+            const late = Number(summary.Late || summary.late || 0);
+            const total = present + absent + late;
 
-            if (attendanceDonut) {
+            const percentage = total ? Math.round((present / total) * 100) : 0;
 
-                const presentDegrees = presentRate * 3.6;
-                const absentDegrees = presentDegrees + (absentRate * 3.6);
+            document.getElementById("presentToday").textContent = present;
+            document.getElementById("absentToday").textContent = absent;
+            document.getElementById("lateToday").textContent = late;
 
-                attendanceDonut.style.background = `
+            document.getElementById("presentCount").textContent = present;
+            document.getElementById("absentCount").textContent = absent;
+            document.getElementById("lateCount").textContent = late;
+
+            document.getElementById("attendanceRate").textContent = `${percentage}%`;
+
+            document.getElementById("presentPercentage").textContent =
+                `${percentage}% attendance`;
+
+            document.getElementById("absentPercentage").textContent =
+                `${total ? Math.round(absent / total * 100) : 0}% of records`;
+
+            document.getElementById("latePercentage").textContent =
+                `${total ? Math.round(late / total * 100) : 0}% of records`;
+
+            const donut = document.getElementById("attendanceDonut");
+
+            if (donut) {
+                const presentAngle = total ? present / total * 360 : 0;
+                const absentAngle = total ? absent / total * 360 : 0;
+
+                donut.style.background = `
                     conic-gradient(
-                        #2563eb 0deg ${presentDegrees}deg,
-                        #ef4444 ${presentDegrees}deg ${absentDegrees}deg,
-                        #f59e0b ${absentDegrees}deg 360deg
+                        #2563eb 0deg ${presentAngle}deg,
+                        #ef4444 ${presentAngle}deg ${presentAngle + absentAngle}deg,
+                        #f59e0b ${presentAngle + absentAngle}deg 360deg
                     )
                 `;
             }
 
-            console.log("Attendance summary loaded:", summary);
-
         } catch (error) {
-
             console.error("Attendance summary error:", error);
         }
     }
 
-    // ==========================================
-    // 10. SEARCH REGISTERED STUDENTS
-    // ==========================================
-
-    if (searchInput) {
-
-        searchInput.addEventListener("input", function () {
-
-            const searchValue = this.value.toLowerCase().trim();
-
-            const filteredStudents = students.filter(student => {
-
-                const details = `
-                    ${student.FirstName}
-                    ${student.LastName}
-                    ${student.StudentNumber}
-                    ${student.ClassName}
-                `.toLowerCase();
-
-                return details.includes(searchValue);
-            });
-
-            displayStudents(filteredStudents);
-        });
-    }
-
-    // ==========================================
-    // 11. SEARCH ATTENDANCE STUDENTS
-    // ==========================================
-
-    if (attendanceSearch) {
-
-        attendanceSearch.addEventListener("input", function () {
-
-            const searchValue = this.value.toLowerCase().trim();
-
-            const filteredStudents = students.filter(student => {
-
-                const details = `
-                    ${student.FirstName}
-                    ${student.LastName}
-                    ${student.StudentNumber}
-                    ${student.ClassName}
-                `.toLowerCase();
-
-                return details.includes(searchValue);
-            });
-
-            displayAttendanceStudents(filteredStudents);
-        });
-    }
-
-    // ==========================================
-    // 12. SAVE ATTENDANCE TO DATABASE
-    // ==========================================
-
-    if (saveAttendanceButton) {
-
-        saveAttendanceButton.addEventListener("click", async function () {
-
-            const statusSelects = document.querySelectorAll(
-                "#attendanceRecords .attendance-status"
-            );
+    // SAVE ATTENDANCE
+    if (saveAttendance) {
+        saveAttendance.addEventListener("click", async () => {
 
             if (students.length === 0) {
                 attendanceMessage.textContent = "No students available.";
                 return;
             }
 
-            const records = [];
+            const records = students.map(student => ({
+                studentID: student.StudentID,
+                status: attendanceStatus[student.StudentID] || ""
+            }));
 
-            for (const student of students) {
+            const incomplete = records.some(record => !record.status);
 
-                const select = Array.from(statusSelects).find(
-                    element => Number(element.dataset.studentId) === student.StudentID
-                );
-
-                const status = select ? select.value : attendanceStatus[student.StudentID] || "";
-
-                if (!status) {
-
-                    if (attendanceMessage) {
-                        attendanceMessage.textContent =
-                            `Please select an attendance status for ${student.FirstName} ${student.LastName}.`;
-                    }
-
-                    return;
-                }
-
-                records.push({
-                    studentID: student.StudentID,
-                    status: status
-                });
+            if (incomplete) {
+                attendanceMessage.textContent =
+                    "Please select an attendance status for every student.";
+                attendanceMessage.style.color = "#dc2626";
+                return;
             }
 
             try {
+                saveAttendance.disabled = true;
+                saveAttendance.textContent = "Saving...";
 
-                saveAttendanceButton.disabled = true;
-                saveAttendanceButton.textContent = "Saving...";
+                const response = await fetch(`${API_URL}/attendance`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        attendanceDate: todayISO,
+                        records
+                    })
+                });
 
-                if (attendanceMessage) {
-                    attendanceMessage.textContent = "Saving attendance...";
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Failed to save attendance.");
                 }
 
+                attendanceMessage.textContent =
+                    data.message || "Attendance saved successfully.";
+
+                attendanceMessage.style.color = "#16a34a";
+
+                await loadTodayAttendance();
+                await loadAttendanceSummary();
+
+            } catch (error) {
+                console.error("Save attendance error:", error);
+
+                attendanceMessage.textContent = error.message;
+                attendanceMessage.style.color = "#dc2626";
+
+            } finally {
+                saveAttendance.disabled = false;
+                saveAttendance.textContent = "Save Attendance";
+            }
+        });
+    }
+
+    // OPEN ADD STUDENT FORM
+    if (showAddStudent) {
+        showAddStudent.addEventListener("click", () => {
+            studentForm.reset();
+            editStudentID.value = "";
+
+            studentFormTitle.textContent = "Register New Student";
+            submitStudent.textContent = "Save Student";
+            studentFormMessage.textContent = "";
+
+            studentFormContainer.hidden = false;
+        });
+    }
+
+    // EDIT STUDENT
+    if (attendanceTable) {
+        attendanceTable.addEventListener("click", event => {
+            const button = event.target.closest(".edit-student-btn");
+
+            if (!button) return;
+
+            const id = Number(button.dataset.id);
+            const student = students.find(item => item.StudentID === id);
+
+            if (!student) return;
+
+            studentForm.reset();
+
+            editStudentID.value = student.StudentID;
+            studentNumber.value = student.StudentNumber;
+            firstName.value = student.FirstName;
+            lastName.value = student.LastName;
+            gender.value = student.Gender || "";
+            classID.value = student.ClassID || "";
+
+            studentFormTitle.textContent = "Edit Student";
+            submitStudent.textContent = "Update Student";
+            studentFormMessage.textContent = "";
+
+            studentFormContainer.hidden = false;
+            studentFormContainer.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+    }
+
+    // CANCEL STUDENT FORM
+    if (cancelStudentForm) {
+        cancelStudentForm.addEventListener("click", () => {
+            studentForm.reset();
+            editStudentID.value = "";
+            studentFormContainer.hidden = true;
+            studentFormMessage.textContent = "";
+        });
+    }
+
+    // ADD OR UPDATE STUDENT
+    if (studentForm) {
+        studentForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const id = editStudentID.value;
+
+            const studentData = {
+                studentNumber: studentNumber.value.trim(),
+                firstName: firstName.value.trim(),
+                lastName: lastName.value.trim(),
+                gender: gender.value,
+                classID: classID.value || null
+            };
+
+            try {
+                submitStudent.disabled = true;
+                submitStudent.textContent = id ? "Updating..." : "Saving...";
+
                 const response = await fetch(
-                    "http://localhost:5000/api/attendance",
+                    id
+                        ? `${API_URL}/students/${id}`
+                        : `${API_URL}/students`,
                     {
-                        method: "POST",
+                        method: id ? "PUT" : "POST",
                         headers: {
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({
-                            attendanceDate: todayString,
-                            records: records
-                        })
+                        body: JSON.stringify(studentData)
                     }
                 );
 
                 const data = await response.json();
 
                 if (!response.ok || !data.success) {
-                    throw new Error(data.message || "Unable to save attendance.");
+                    throw new Error(data.message || "Could not save student.");
                 }
 
-                attendanceMessage.textContent = data.message;
+                studentFormMessage.textContent = data.message;
+                studentFormMessage.style.color = "#16a34a";
 
+                await loadStudents();
+                await loadTodayAttendance();
                 await loadAttendanceSummary();
 
-                await loadTodayAttendance();
-
-                displayAttendanceStudents(students);
+                studentForm.reset();
+                editStudentID.value = "";
+                studentFormContainer.hidden = true;
 
             } catch (error) {
+                console.error("Save student error:", error);
 
-                console.error("Save attendance error:", error);
-
-                if (attendanceMessage) {
-                    attendanceMessage.textContent = error.message;
-                }
+                studentFormMessage.textContent = error.message;
+                studentFormMessage.style.color = "#dc2626";
 
             } finally {
-
-                saveAttendanceButton.disabled = false;
-                saveAttendanceButton.textContent = "Save Attendance";
+                submitStudent.disabled = false;
+                submitStudent.textContent = editStudentID.value
+                    ? "Update Student"
+                    : "Save Student";
             }
         });
     }
 
-    // ==========================================
-    // 13. START THE DASHBOARD
-    // ==========================================
+    // INITIALIZE APPLICATION
+    async function initializeApp() {
+        await loadClasses();
+        await loadStudents();
+        await loadTodayAttendance();
+        await loadAttendanceSummary();
+    }
 
-    loadStudents();
-    loadAttendanceSummary();
+    initializeApp();
 
 });
