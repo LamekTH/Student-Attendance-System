@@ -1,2 +1,15 @@
-# Student-Attendance-System
-A web-based Student Attendance Management System built with HTML, CSS, JavaScript, Node.js and SQL Server
+# Student Attendance System
+
+A system for managing attendance.
+
+## Features
+
+- Student registration
+- Attendance recording
+- Reports
+
+## Technologies
+
+- HTML
+- CSS
+- JavaScript

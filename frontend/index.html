@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendwithEase | Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">A</div>
+            <div>
+                <h2>AttendwithEase</h2>
+                <span>Attendance System</span>
+            </div>
+        </div>
+
+        <div class="menu-label">MAIN MENU</div>
+
+        <nav>
+            <a href="#" class="nav-link active">
+                <span>▦</span> Dashboard
+            </a>
+            <a href="#students" class="nav-link">
+                <span>♙</span> Students
+            </a>
+            <a href="#attendance" class="nav-link">
+                <span>☑</span> Attendance
+            </a>
+            <a href="#reports" class="nav-link">
+                <span>▤</span> Reports
+            </a>
+            <a href="#classes" class="nav-link">
+                <span>▣</span> Classes
+            </a>
+        </nav>
+
+        <div class="menu-label settings-label">SYSTEM</div>
+
+        <nav>
+            <a href="#settings" class="nav-link">
+                <span>⚙</span> Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="admin-avatar">AD</div>
+            <div class="admin-info">
+                <strong>Administrator</strong>
+                <span>System Admin</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <p class="breadcrumb">Pages / Dashboard</p>
+                <h1>Dashboard</h1>
+            </div>
+
+            <div class="topbar-right">
+                <span class="today" id="currentDate"></span>
+                <div class="profile-avatar">AD</div>
+            </div>
+        </header>
+
+        <section class="welcome">
+            <div>
+                <p class="welcome-tag">ADMIN OVERVIEW</p>
+                <h2>Welcome back Mr  Administrator! 👋</h2>
+                <p>Here's what's happening with your school's attendance today.</p>
+            </div>
+            <div class="welcome-icon">📚</div>
+        </section>
+
+        <!-- Statistics -->
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span>Total Students</span>
+                    <div class="stat-icon blue"></div>
+                </div>
+                <h2>1,250</h2>
+                <p class="stat-note">Registered students</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span>Present Today</span>
+                    <div class="stat-icon green"></div>
+                </div>
+                <h2>1,120</h2>
+                <p class="stat-note positive">89.6% attendance</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span>Absent Today</span>
+                    <div class="stat-icon red"></div>
+                </div>
+                <h2>85</h2>
+                <p class="stat-note negative">6.8% of students</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span>Late Students</span>
+                    <div class="stat-icon orange"></div>
+                </div>
+                <h2>45</h2>
+                <p class="stat-note warning">3.6% of students</p>
+            </div>
+
+        </section>
+
+        <!-- Content Grid -->
+        <section class="content-grid">
+
+            <div class="panel attendance-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Attendance Overview</h3>
+                        <p>Today's attendance summary</p>
+                    </div>
+                    <span class="live-label">TODAY</span>
+                </div>
+
+                <div class="attendance-chart">
+                    <div class="donut">
+                        <div class="donut-center">
+                            <strong>89.6%</strong>
+                            <span>Present</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div><span class="dot blue-dot"></span> Present <strong>1,120</strong></div>
+                    <div><span class="dot red-dot"></span> Absent <strong>85</strong></div>
+                    <div><span class="dot orange-dot"></span> Late <strong>45</strong></div>
+                </div>
+            </div>
+
+            <div class="panel quick-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Quick Actions</h3>
+                        <p>Frequently used functions</p>
+                    </div>
+                </div>
+
+                <a href="#students" class="action-item">
+                    <div class="action-icon blue">＋</div>
+                    <div>
+                        <strong>Register Student</strong>
+                        <span>Add a new student</span>
+                    </div>
+                    <span class="arrow">›</span>
+                </a>
+
+                <a href="#attendance" class="action-item">
+                    <div class="action-icon green">✓</div>
+                    <div>
+                        <strong>Record Attendance</strong>
+                        <span>Mark daily attendance</span>
+                    </div>
+                    <span class="arrow">›</span>
+                </a>
+
+                <a href="#reports" class="action-item">
+                    <div class="action-icon purple">▤</div>
+                    <div>
+                        <strong>Generate Report</strong>
+                        <span>View attendance reports</span>
+                    </div>
+                    <span class="arrow">›</span>
+                </a>
+            </div>
+
+        </section>
+
+        <!-- Recent Attendance -->
+        <section class="panel recent-panel">
+            <div class="panel-heading recent-heading">
+                <div>
+                    <h3>Recent Attendance Records</h3>
+                    <p>A quick look at today's student records</p>
+                </div>
+                <a href="#attendance" class="view-all">View all →</a>
+            </div>
+
+            <div class="search-box">
+                <span>⌕</span>
+                <input type="text" id="searchInput"
+                    placeholder="Search student name or ID...">
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STUDENT</th>
+                            <th>STUDENT ID</th>
+                            <th>CLASS</th>
+                            <th>TIME</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTable">
+                        <tr>
+                            <td>Junias Issaskar</td>
+                            <td>STU001</td>
+                            <td>Grade 12A</td>
+                            <td>07:15 AM</td>
+                            <td><span class="status present">Present</span></td>
+                        </tr>
+                        <tr>
+                            <td>Ashipala Richard</td>
+                            <td>STU002</td>
+                            <td>Grade 11B</td>
+                            <td>07:30 AM</td>
+                            <td><span class="status present">Present</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mutikisha Phillipus</td>
+                            <td>STU003</td>
+                            <td>Grade 12B</td>
+                            <td>--</td>
+                            <td><span class="status absent">Absent</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mathias Mwaetako </td>
+                            <td>STU004</td>
+                            <td>Grade 10C</td>
+                            <td>07:55 AM</td>
+                            <td><span class="status late">Late</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mumbala Stanley </td>
+                            <td>STU005</td>
+                            <td>Grade 11A</td>
+                            <td>07:20 AM</td>
+                            <td><span class="status present">Present</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p id="noResults" class="no-results" hidden>No matching students found.</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2026 AttendwithEase. Student Attendance Management System.</p>
+            <span>Version 1.0.0</span>
+        </footer>
+
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
