@@ -84,74 +84,86 @@
             <div class="welcome-icon">📚</div>
         </section>
 
-        <!-- Statistics -->
-        <section class="stats-grid">
+        
+<!-- Statistics -->
+<section class="stats-grid">
 
-            <div class="stat-card">
-                <div class="stat-top">
-                    <span>Total Students</span>
-                    <div class="stat-icon blue"></div>
-                </div>
-                <h2>1,250</h2>
-                <p class="stat-note">Registered students</p>
-            </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Total Students</span>
+            <div class="stat-icon blue"></div>
+        </div>
+        <h2 id="totalStudents">0</h2>
+        <p class="stat-note">Registered students</p>
+    </div>
 
-            <div class="stat-card">
-                <div class="stat-top">
-                    <span>Present Today</span>
-                    <div class="stat-icon green"></div>
-                </div>
-                <h2>1,120</h2>
-                <p class="stat-note positive">89.6% attendance</p>
-            </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Present Today</span>
+            <div class="stat-icon green"></div>
+        </div>
+        <h2 id="presentToday">0</h2>
+        <p class="stat-note positive" id="presentPercentage">0% attendance</p>
+    </div>
 
-            <div class="stat-card">
-                <div class="stat-top">
-                    <span>Absent Today</span>
-                    <div class="stat-icon red"></div>
-                </div>
-                <h2>85</h2>
-                <p class="stat-note negative">6.8% of students</p>
-            </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Absent Today</span>
+            <div class="stat-icon red"></div>
+        </div>
+        <h2 id="absentToday">0</h2>
+        <p class="stat-note negative" id="absentPercentage">0% of records</p>
+    </div>
 
-            <div class="stat-card">
-                <div class="stat-top">
-                    <span>Late Students</span>
-                    <div class="stat-icon orange"></div>
-                </div>
-                <h2>45</h2>
-                <p class="stat-note warning">3.6% of students</p>
-            </div>
+    <div class="stat-card">
+        <div class="stat-top">
+            <span>Late Students</span>
+            <div class="stat-icon orange"></div>
+        </div>
+        <h2 id="lateToday">0</h2>
+        <p class="stat-note warning" id="latePercentage">0% of records</p>
+    </div>
 
-        </section>
+</section>
+
 
         <!-- Content Grid -->
         <section class="content-grid">
 
-            <div class="panel attendance-panel">
-                <div class="panel-heading">
-                    <div>
-                        <h3>Attendance Overview</h3>
-                        <p>Today's attendance summary</p>
-                    </div>
-                    <span class="live-label">TODAY</span>
-                </div>
+<div class="panel attendance-panel">
+    <div class="panel-heading">
+        <div>
+            <h3>Attendance Overview</h3>
+            <p>Today's attendance summary</p>
+        </div>
+        <span class="live-label">TODAY</span>
+    </div>
 
-                <div class="attendance-chart">
-                    <div class="donut">
-                        <div class="donut-center">
-                            <strong>89.6%</strong>
-                            <span>Present</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="legend">
-                    <div><span class="dot blue-dot"></span> Present <strong>1,120</strong></div>
-                    <div><span class="dot red-dot"></span> Absent <strong>85</strong></div>
-                    <div><span class="dot orange-dot"></span> Late <strong>45</strong></div>
-                </div>
+    <div class="attendance-chart">
+        <div class="donut" id="attendanceDonut">
+            <div class="donut-center">
+                <strong id="attendanceRate">0%</strong>
+                <span>Present</span>
             </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div>
+            <span class="dot blue-dot"></span>
+            Present <strong id="presentCount">0</strong>
+        </div>
+        <div>
+            <span class="dot red-dot"></span>
+            Absent <strong id="absentCount">0</strong>
+        </div>
+        <div>
+            <span class="dot orange-dot"></span>
+            Late <strong id="lateCount">0</strong>
+        </div>
+    </div>
+</div>
+
 
             <div class="panel quick-panel">
                 <div class="panel-heading">
@@ -195,8 +207,8 @@
         <section class="panel recent-panel">
             <div class="panel-heading recent-heading">
                 <div>
-                    <h3>Recent Attendance Records</h3>
-                    <p>A quick look at today's student records</p>
+                    <h3>Registered Students</h3>
+<p>Student records retrieved from the database</p>
                 </div>
                 <a href="#attendance" class="view-all">View all →</a>
             </div>
@@ -211,55 +223,20 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>STUDENT</th>
-                            <th>STUDENT ID</th>
-                            <th>CLASS</th>
-                            <th>TIME</th>
-                            <th>STATUS</th>
+                           <th>STUDENT</th>
+                           <th>STUDENT ID</th>
+                           <th>CLASS</th>
+                           <th>GENDER</th> 
                         </tr>
                     </thead>
-                    <tbody id="attendanceTable">
-                        <tr>
-                            <td>Junias Issaskar</td>
-                            <td>STU001</td>
-                            <td>Grade 12A</td>
-                            <td>07:15 AM</td>
-                            <td><span class="status present">Present</span></td>
-                        </tr>
-                        <tr>
-                            <td>Ashipala Richard</td>
-                            <td>STU002</td>
-                            <td>Grade 11B</td>
-                            <td>07:30 AM</td>
-                            <td><span class="status present">Present</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mutikisha Phillipus</td>
-                            <td>STU003</td>
-                            <td>Grade 12B</td>
-                            <td>--</td>
-                            <td><span class="status absent">Absent</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mathias Mwaetako </td>
-                            <td>STU004</td>
-                            <td>Grade 10C</td>
-                            <td>07:55 AM</td>
-                            <td><span class="status late">Late</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mumbala Stanley </td>
-                            <td>STU005</td>
-                            <td>Grade 11A</td>
-                            <td>07:20 AM</td>
-                            <td><span class="status present">Present</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p id="noResults" class="no-results" hidden>No matching students found.</p>
-            </div>
-        </section>
-
+                      <tbody id="attendanceTable">
+            <!-- Student records will load from SQL Server -->
+        </tbody>
+          </table>
+           <p id="noResults" class="no-results" hidden>
+        No matching students found.
+    </p>
+</div>
         <footer>
             <p>© 2026 AttendwithEase. Student Attendance Management System.</p>
             <span>Version 1.0.0</span>
