@@ -140,6 +140,24 @@ document.addEventListener("DOMContentLoaded", () => {
                         data-id="${student.StudentID}">
                         Edit
                     </button>
+
+                    <button
+                        type="button"
+                        class="delete-student-btn"
+                        data-id="${student.StudentID}"
+                        style="
+                            background: rgba(255, 100, 100, 0.15);
+                            color: #ffaaaa;
+                            border: 1px solid rgba(255, 120, 120, 0.25);
+                            padding: 9px 12px;
+                            border-radius: 8px;
+                            font-size: 11px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            margin-left: 5px;
+                        ">
+                        Delete
+                    </button>
                 </td>
             </tr>
         `).join("");
@@ -319,9 +337,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 donut.style.background = `
                     conic-gradient(
-                        #2563eb 0deg ${presentAngle}deg,
-                        #ef4444 ${presentAngle}deg ${presentAngle + absentAngle}deg,
-                        #f59e0b ${presentAngle + absentAngle}deg 360deg
+                        #b9e6a5 0deg ${presentAngle}deg,
+                        #e67c7c ${presentAngle}deg ${presentAngle + absentAngle}deg,
+                        #e8b76e ${presentAngle + absentAngle}deg 360deg
                     )
                 `;
             }
@@ -410,36 +428,106 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // EDIT STUDENT
+    // EDIT AND DELETE STUDENT
     if (attendanceTable) {
-        attendanceTable.addEventListener("click", event => {
-            const button = event.target.closest(".edit-student-btn");
+        attendanceTable.addEventListener("click", async event => {
 
-            if (!button) return;
+            // EDIT STUDENT
+            const editButton = event.target.closest(".edit-student-btn");
 
-            const id = Number(button.dataset.id);
-            const student = students.find(item => item.StudentID === id);
+            if (editButton) {
+                const id = Number(editButton.dataset.id);
+                const student = students.find(item => item.StudentID === id);
 
-            if (!student) return;
+                if (!student) return;
 
-            studentForm.reset();
+                studentForm.reset();
 
-            editStudentID.value = student.StudentID;
-            studentNumber.value = student.StudentNumber;
-            firstName.value = student.FirstName;
-            lastName.value = student.LastName;
-            gender.value = student.Gender || "";
-            classID.value = student.ClassID || "";
+                editStudentID.value = student.StudentID;
+                studentNumber.value = student.StudentNumber;
+                firstName.value = student.FirstName;
+                lastName.value = student.LastName;
+                gender.value = student.Gender || "";
+                classID.value = student.ClassID || "";
 
-            studentFormTitle.textContent = "Edit Student";
-            submitStudent.textContent = "Update Student";
-            studentFormMessage.textContent = "";
+                studentFormTitle.textContent = "Edit Student";
+                submitStudent.textContent = "Update Student";
+                studentFormMessage.textContent = "";
 
-            studentFormContainer.hidden = false;
-            studentFormContainer.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+                studentFormContainer.hidden = false;
+
+                studentFormContainer.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+                return;
+            }
+
+            // DELETE STUDENT
+            const deleteButton = event.target.closest(".delete-student-btn");
+
+            if (deleteButton) {
+                const id = Number(deleteButton.dataset.id);
+
+                const student = students.find(item => item.StudentID === id);
+
+                if (!student) return;
+
+                const studentName =
+                    `${student.FirstName} ${student.LastName}`;
+
+                const confirmed = window.confirm(
+                    `Are you sure you want to delete ${studentName} (${student.StudentNumber})?\n\nThis will permanently delete the student and all their attendance records.`
+                );
+
+                if (!confirmed) return;
+
+                try {
+                    deleteButton.disabled = true;
+                    deleteButton.textContent = "Deleting...";
+
+                    const response = await fetch(
+                        `${API_URL}/students/${id}`,
+                        {
+                            method: "DELETE"
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || "Failed to delete student.");
+                    }
+
+                    // Remove deleted student's unsaved attendance status
+                    delete attendanceStatus[id];
+
+                    // Refresh application data
+                    await loadStudents();
+                    await loadTodayAttendance();
+                    await loadAttendanceSummary();
+
+                    // Refresh student search results
+                    if (searchInput) {
+                        searchInput.dispatchEvent(new Event("input"));
+                    }
+
+                    if (attendanceMessage) {
+                        attendanceMessage.textContent =
+                            `${studentName} was deleted successfully.`;
+                        attendanceMessage.style.color = "#16a34a";
+                    }
+
+                } catch (error) {
+                    console.error("Delete student error:", error);
+
+                    window.alert(error.message);
+
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = "Delete";
+                }
+            }
         });
     }
 

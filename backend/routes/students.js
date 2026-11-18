@@ -251,4 +251,84 @@ router.put("/:id", async (req, res) => {
     }
 });
 
+
+// DELETE STUDENT
+router.delete("/:id", async (req, res) => {
+    let transaction;
+
+    try {
+        const studentID = Number(req.params.id);
+
+        if (!Number.isInteger(studentID) || studentID <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid student ID."
+            });
+        }
+
+        const pool = await connectDB();
+
+        transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        // Check whether the student exists
+        const checkStudent = await transaction.request()
+            .input("StudentID", sql.Int, studentID)
+            .query(`
+                SELECT StudentID
+                FROM Students
+                WHERE StudentID = @StudentID
+            `);
+
+        if (checkStudent.recordset.length === 0) {
+            await transaction.rollback();
+
+            return res.status(404).json({
+                success: false,
+                message: "Student not found."
+            });
+        }
+
+        // Delete the student's attendance records first
+        await transaction.request()
+            .input("StudentID", sql.Int, studentID)
+            .query(`
+                DELETE FROM Attendance
+                WHERE StudentID = @StudentID
+            `);
+
+        // Delete the student
+        await transaction.request()
+            .input("StudentID", sql.Int, studentID)
+            .query(`
+                DELETE FROM Students
+                WHERE StudentID = @StudentID
+            `);
+
+        await transaction.commit();
+
+        res.json({
+            success: true,
+            message: "Student and their attendance records deleted successfully."
+        });
+
+    } catch (error) {
+        if (transaction) {
+            try {
+                await transaction.rollback();
+            } catch (rollbackError) {
+                console.error("Rollback error:", rollbackError);
+            }
+        }
+
+        console.error("Delete student error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete student."
+        });
+    }
+});
+
+
 module.exports = router;
