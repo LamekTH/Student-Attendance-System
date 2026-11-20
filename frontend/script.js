@@ -500,15 +500,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         throw new Error(data.message || "Failed to delete student.");
                     }
 
-                    // Remove deleted student's unsaved attendance status
                     delete attendanceStatus[id];
 
-                    // Refresh application data
                     await loadStudents();
                     await loadTodayAttendance();
                     await loadAttendanceSummary();
 
-                    // Refresh student search results
                     if (searchInput) {
                         searchInput.dispatchEvent(new Event("input"));
                     }
@@ -604,6 +601,417 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // ==========================================
+    // ATTENDANCE REPORT FUNCTIONALITY
+    // ==========================================
+
+    const reportForm = document.getElementById("reportForm");
+    const reportStartDate = document.getElementById("reportStartDate");
+    const reportEndDate = document.getElementById("reportEndDate");
+    const reportMessage = document.getElementById("reportMessage");
+    const reportOutput = document.getElementById("reportOutput");
+    const printReport = document.getElementById("printReport");
+
+    // SET DEFAULT REPORT DATES
+    if (reportStartDate && reportEndDate) {
+        const monthStart = new Date();
+        monthStart.setDate(1);
+
+        reportStartDate.value = [
+            monthStart.getFullYear(),
+            String(monthStart.getMonth() + 1).padStart(2, "0"),
+            "01"
+        ].join("-");
+
+        reportEndDate.value = todayISO;
+    }
+
+    // FORMAT REPORT DATE
+    function formatReportDate(value) {
+        if (!value) return "—";
+
+        const date = String(value).slice(0, 10);
+        const parts = date.split("-");
+
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        return date;
+    }
+
+    // GENERATE ATTENDANCE REPORT
+    if (reportForm) {
+        reportForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const startDate = reportStartDate?.value;
+            const endDate = reportEndDate?.value;
+
+            if (!startDate || !endDate) {
+                reportMessage.textContent =
+                    "Please select both report dates.";
+                return;
+            }
+
+            if (startDate > endDate) {
+                reportMessage.textContent =
+                    "Start date cannot be after end date.";
+                return;
+            }
+
+            try {
+                reportMessage.textContent = "Generating report...";
+
+                if (printReport) {
+                    printReport.disabled = true;
+                }
+
+                const response = await fetch(
+                    `${API_URL}/reports?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || "Could not generate report."
+                    );
+                }
+
+                // REPORT SUMMARY
+                const summary = data.summary || {};
+
+                const total = Number(summary.TotalRecords || 0);
+                const present = Number(summary.Present || 0);
+                const absent = Number(summary.Absent || 0);
+                const late = Number(summary.Late || 0);
+
+                const percentage = Number(
+                    summary.AttendancePercentage || 0
+                );
+
+                const setReportValue = (id, value) => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = value;
+                };
+
+                setReportValue("reportTotalRecords", total);
+                setReportValue("reportPresent", present);
+                setReportValue("reportAbsent", absent);
+                setReportValue("reportLate", late);
+
+                setReportValue(
+                    "reportAttendancePercentage",
+                    `${percentage.toFixed(2)}%`
+                );
+
+                // REPORT DATE RANGE
+                setReportValue(
+                    "reportDateRange",
+                    `${formatReportDate(startDate)} - ${formatReportDate(endDate)}`
+                );
+
+                setReportValue(
+                    "reportGeneratedAt",
+                    new Date().toLocaleString("en-GB")
+                );
+
+                // STUDENT SUMMARY
+                const studentTable =
+                    document.getElementById("reportStudentSummary");
+
+                const studentSummary = data.studentSummary || [];
+
+                if (studentTable) {
+                    studentTable.innerHTML = studentSummary.length
+                        ? studentSummary.map(student => `
+                            <tr>
+                                <td>${escapeHTML(student.StudentNumber)}</td>
+                                <td>${escapeHTML(student.FirstName)} ${escapeHTML(student.LastName)}</td>
+                                <td>${escapeHTML(student.ClassName || "Not assigned")}</td>
+                                <td>${Number(student.TotalDays || 0)}</td>
+                                <td>${Number(student.Present || 0)}</td>
+                                <td>${Number(student.Absent || 0)}</td>
+                                <td>${Number(student.Late || 0)}</td>
+                                <td>${Number(student.AttendancePercentage || 0).toFixed(2)}%</td>
+                            </tr>
+                        `).join("")
+                        : `<tr><td colspan="8">No students found.</td></tr>`;
+                }
+
+                // DETAILED ATTENDANCE RECORDS
+                const recordsTable =
+                    document.getElementById("reportRecords");
+
+                const records = data.records || [];
+
+                if (recordsTable) {
+                    recordsTable.innerHTML = records.length
+                        ? records.map(record => `
+                            <tr>
+                                <td>${escapeHTML(record.StudentNumber)}</td>
+                                <td>${escapeHTML(record.FirstName)} ${escapeHTML(record.LastName)}</td>
+                                <td>${escapeHTML(record.ClassName || "Not assigned")}</td>
+                                <td>${formatReportDate(record.AttendanceDate)}</td>
+                                <td>${escapeHTML(record.Status)}</td>
+                            </tr>
+                        `).join("")
+                        : `<tr><td colspan="5">No attendance records found for this period.</td></tr>`;
+                }
+
+                // DISPLAY REPORT
+                if (reportOutput) {
+                    reportOutput.hidden = false;
+                }
+
+                if (printReport) {
+                    printReport.disabled = false;
+                }
+
+                reportMessage.textContent =
+                    "Attendance report generated successfully.";
+
+            } catch (error) {
+                console.error("Report generation error:", error);
+
+                if (reportMessage) {
+                    reportMessage.textContent = error.message;
+                }
+
+                if (printReport) {
+                    printReport.disabled = true;
+                }
+            }
+        });
+    }
+
+    // PRINT OR SAVE AS PDF
+   
+// ==========================================
+// DOWNLOAD ATTENDANCE REPORT AS PDF
+// ==========================================
+
+const downloadPDF = document.getElementById("downloadPDF");
+
+if (downloadPDF) {
+    downloadPDF.addEventListener("click", () => {
+        try {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                alert("PDF library not loaded. Please refresh the page.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF("p", "mm", "a4");
+
+            const studentTable = document.getElementById("reportStudentSummary");
+            const recordsTable = document.getElementById("reportRecords");
+
+            if (!studentTable || !recordsTable) {
+                alert("Report tables could not be found.");
+                return;
+            }
+
+            if (!studentTable.rows.length || !recordsTable.rows.length) {
+                alert("Please generate an attendance report first.");
+                return;
+            }
+
+            const startDate = document.getElementById("reportStartDate")?.value || "";
+            const endDate = document.getElementById("reportEndDate")?.value || "";
+
+            const total = document.getElementById("reportTotalRecords")?.textContent || "0";
+            const present = document.getElementById("reportPresent")?.textContent || "0";
+            const absent = document.getElementById("reportAbsent")?.textContent || "0";
+            const late = document.getElementById("reportLate")?.textContent || "0";
+            const percentage = document.getElementById("reportAttendancePercentage")?.textContent || "0%";
+
+            const generatedAt = new Date().toLocaleString("en-GB");
+
+            // COLORS
+            const navy = [1, 56, 110];
+            const blue = [37, 99, 235];
+            const grey = [100, 116, 139];
+
+            // HEADER
+            doc.setFillColor(...navy);
+            doc.rect(0, 0, 210, 42, "F");
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(21);
+            doc.text("ATTENDWITHEASE", 14, 17);
+
+            doc.setFontSize(12);
+            doc.text("STUDENT ATTENDANCE REPORT", 14, 27);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.text("OFFICIAL ATTENDANCE RECORD", 14, 35);
+
+            // REPORT INFORMATION
+            doc.setTextColor(30, 41, 59);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.text("1. REPORT INFORMATION", 14, 55);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.text(`Report Period: ${startDate} to ${endDate}`, 14, 64);
+            doc.text(`Generated: ${generatedAt}`, 14, 71);
+
+            // ATTENDANCE SUMMARY
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.text("2. ATTENDANCE OVERVIEW", 14, 86);
+
+            const summaryData = [
+                ["Total Records", total],
+                ["Present", present],
+                ["Absent", absent],
+                ["Late", late],
+                ["Attendance Rate", percentage]
+            ];
+
+            doc.autoTable({
+                startY: 92,
+                head: [["METRIC", "VALUE"]],
+                body: summaryData,
+                theme: "grid",
+                headStyles: {
+                    fillColor: navy,
+                    textColor: 255
+                },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            // STUDENT SUMMARY
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.text(
+                "3. STUDENT ATTENDANCE SUMMARY",
+                14,
+                doc.lastAutoTable.finalY + 13
+            );
+
+            const studentHeaders = [
+                "Student No.",
+                "Student Name",
+                "Class",
+                "Days",
+                "Present",
+                "Absent",
+                "Late",
+                "Rate"
+            ];
+
+            const studentRows = Array.from(studentTable.querySelectorAll("tr"))
+                .filter(row => row.querySelectorAll("td").length === 8)
+                .map(row => Array.from(row.querySelectorAll("td"))
+                    .map(cell => cell.textContent.trim()));
+
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 19,
+                head: [studentHeaders],
+                body: studentRows,
+                theme: "striped",
+                headStyles: {
+                    fillColor: navy,
+                    textColor: 255,
+                    fontSize: 7
+                },
+                styles: {
+                    fontSize: 7,
+                    cellPadding: 2
+                },
+                margin: { left: 10, right: 10 }
+            });
+
+            // DETAILED ATTENDANCE RECORDS
+            const detailStartY = doc.lastAutoTable.finalY + 15;
+
+            if (detailStartY > 260) {
+                doc.addPage();
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.text("4. DETAILED ATTENDANCE RECORDS", 14, 20);
+            } else {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.text("4. DETAILED ATTENDANCE RECORDS", 14, detailStartY);
+            }
+
+            const recordRows = Array.from(recordsTable.querySelectorAll("tr"))
+                .filter(row => row.querySelectorAll("td").length === 5)
+                .map(row => Array.from(row.querySelectorAll("td"))
+                    .map(cell => cell.textContent.trim()));
+
+            doc.autoTable({
+                startY: detailStartY > 260 ? 27 : detailStartY + 6,
+                head: [[
+                    "Student No.",
+                    "Student Name",
+                    "Class",
+                    "Date",
+                    "Status"
+                ]],
+                body: recordRows,
+                theme: "striped",
+                headStyles: {
+                    fillColor: blue,
+                    textColor: 255
+                },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2.5
+                },
+                margin: { left: 10, right: 10 },
+                didDrawPage: function () {
+                    doc.setFontSize(8);
+                    doc.setTextColor(...grey);
+                }
+            });
+
+            // FOOTER AND PAGE NUMBERS
+            const pageCount = doc.internal.getNumberOfPages();
+
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.setTextColor(...grey);
+
+                doc.text(
+                    "AttendwithEase | Student Attendance Management System",
+                    14,
+                    287
+                );
+
+                doc.text(
+                    `Page ${i} of ${pageCount}`,
+                    196,
+                    287,
+                    { align: "right" }
+                );
+            }
+
+            // SAVE PDF
+            doc.save(`AttendwithEase_Attendance_Report_${startDate}_to_${endDate}.pdf`);
+
+        } catch (error) {
+            console.error("PDF generation error:", error);
+            alert("Could not generate PDF. Check the browser console for details.");
+        }
+    });
+}
+
 
     // INITIALIZE APPLICATION
     async function initializeApp() {
