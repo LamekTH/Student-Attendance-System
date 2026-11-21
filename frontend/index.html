@@ -16,7 +16,6 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="brand">
-            <div class="brand-icon">A</div>
             <div>
                 <h2>AttendwithEase</h2>
                 <span>Attendance System</span>
@@ -71,7 +70,7 @@
 
             <div class="topbar-right">
                 <span class="today" id="currentDate"></span>
-                <div class="profile-avatar">AD</div>
+
             </div>
         </header>
 
@@ -81,7 +80,7 @@
                 <h2>Welcome back Mr  Administrator! 👋</h2>
                 <p>Here's what's happening with your school's attendance today.</p>
             </div>
-            <div class="welcome-icon">📚</div>
+          
         </section>
 
         
@@ -91,7 +90,7 @@
     <div class="stat-card">
         <div class="stat-top">
             <span>Total Students</span>
-            <div class="stat-icon blue"></div>
+            
         </div>
         <h2 id="totalStudents">0</h2>
         <p class="stat-note">Registered students</p>
@@ -100,7 +99,6 @@
     <div class="stat-card">
         <div class="stat-top">
             <span>Present Today</span>
-            <div class="stat-icon green"></div>
         </div>
         <h2 id="presentToday">0</h2>
         <p class="stat-note positive" id="presentPercentage">0% attendance</p>
@@ -109,7 +107,6 @@
     <div class="stat-card">
         <div class="stat-top">
             <span>Absent Today</span>
-            <div class="stat-icon red"></div>
         </div>
         <h2 id="absentToday">0</h2>
         <p class="stat-note negative" id="absentPercentage">0% of records</p>
@@ -118,14 +115,12 @@
     <div class="stat-card">
         <div class="stat-top">
             <span>Late Students</span>
-            <div class="stat-icon orange"></div>
         </div>
         <h2 id="lateToday">0</h2>
         <p class="stat-note warning" id="latePercentage">0% of records</p>
     </div>
 
 </section>
-
 
         <!-- Content Grid -->
         <section class="content-grid">
@@ -136,7 +131,6 @@
             <h3>Attendance Overview</h3>
             <p>Today's attendance summary</p>
         </div>
-        <span class="live-label">TODAY</span>
     </div>
 
     <div class="attendance-chart">
@@ -368,6 +362,150 @@
 
 </section>
 
+
+        <!-- ATTENDANCE REPORTS SECTION -->
+        <section class="panel recent-panel reports-panel" id="reports">
+
+            <div class="panel-heading">
+                <div>
+                    <h3>Attendance Reports</h3>
+                    <p>Generate attendance reports for a selected date range</p>
+                </div>
+                <span class="live-label">REPORTS</span>
+            </div>
+
+            <!-- REPORT FILTERS -->
+            <form id="reportForm" class="report-filters">
+                <div class="report-filter-field">
+                    <label for="reportStartDate">Start Date</label>
+                    <input type="date" id="reportStartDate" required>
+                </div>
+
+                <div class="report-filter-field">
+                    <label for="reportEndDate">End Date</label>
+                    <input type="date" id="reportEndDate" required>
+                </div>
+
+                <div class="report-filter-actions">
+                    <button type="submit" id="generateReport" class="save-btn">
+                        Generate Report
+                    </button>
+                   <button type="button" id="downloadPDF" class="download-pdf-btn">
+                          <i class="fas fa-file-pdf"></i>
+                                   Download PDF
+                            </button>
+</button>
+                </div>
+            </form>
+
+            <p id="reportMessage" class="report-message" aria-live="polite"></p>
+
+            <!-- REPORT OUTPUT: hidden until a report is generated -->
+            <div id="reportOutput" hidden>
+
+                <div class="report-heading">
+                    <div>
+                        <h3>Attendance Report</h3>
+                        <p id="reportDateRange">Selected reporting period</p>
+                    </div>
+                    <span id="reportGeneratedAt"></span>
+                </div>
+
+                <!-- OVERALL REPORT STATISTICS -->
+                <div class="report-stats-grid">
+                    <div class="report-stat-card">
+                        <span>Total Attendance Records</span>
+                        <strong id="reportTotalRecords">0</strong>
+                    </div>
+
+                    <div class="report-stat-card">
+                        <span>Present</span>
+                        <strong id="reportPresent">0</strong>
+                    </div>
+
+                    <div class="report-stat-card">
+                        <span>Absent</span>
+                        <strong id="reportAbsent">0</strong>
+                    </div>
+
+                    <div class="report-stat-card">
+                        <span>Late</span>
+                        <strong id="reportLate">0</strong>
+                    </div>
+
+                    <div class="report-stat-card">
+                        <span>Attendance Percentage</span>
+                        <strong id="reportAttendancePercentage">0%</strong>
+                    </div>
+                </div>
+
+                <!-- INDIVIDUAL STUDENT SUMMARY -->
+                <div class="report-table-section">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Student Attendance Summary</h3>
+                            <p>Attendance totals for each registered student</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>STUDENT NUMBER</th>
+                                    <th>STUDENT NAME</th>
+                                    <th>CLASS</th>
+                                    <th>TOTAL DAYS</th>
+                                    <th>PRESENT</th>
+                                    <th>ABSENT</th>
+                                    <th>LATE</th>
+                                    <th>ATTENDANCE %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportStudentSummary">
+                                <tr>
+                                    <td colspan="8">Generate a report to view student summaries.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- DETAILED ATTENDANCE RECORDS -->
+                <div class="report-table-section">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Detailed Attendance Records</h3>
+                            <p>Individual attendance entries within the selected period</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>DATE</th>
+                                    <th>STUDENT NUMBER</th>
+                                    <th>STUDENT NAME</th>
+                                    <th>CLASS</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportRecords">
+                                <tr>
+                                    <td colspan="5">Generate a report to view attendance records.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <p class="report-footer-note">
+                    Generated by AttendwithEase Student Attendance Management System.
+                </p>
+            </div>
+        </section>
+
         <footer>
             <p>© 2026 AttendwithEase. Student Attendance Management System.</p>
             <span>Version 1.0.0</span>
@@ -375,6 +513,11 @@
 
     </main>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+
 
 <script src="script.js"></script>
 </body>
